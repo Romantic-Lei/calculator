@@ -105,15 +105,17 @@ func main() {
 		Top : -1,
 	}
 
-	exp := "3+3*6-6"
+	exp := "30+50*3-12"
 	// 定义一个index， 帮助扫描exp
 	index := 0
 	num1 := 0 // 数1
 	num2 := 0 // 数2
 	oper := 0 // 运算符
 	result := 0 // 结果
+	keepNum := "" // 多位数拼接
 
 	for {
+		// 处理多位数问题
 		ch := exp[index:index + 1] // 字符串
 		temp := int([]byte(ch)[0]) // 就是字符串对应的ASCII码
 		if operStack.IsOper(temp) {
@@ -143,12 +145,28 @@ func main() {
 
 		} else {
 			// 说明是数
-			// 参数1 数字的字符串形式
-			// 参数2 数字字符串的进制 比如二进制 八进制 十进制 十六进制
-			// 参数3 返回结果的bit大小 也就是int8 int16 int32 int64
 
-			val, _ := strconv.ParseInt(ch, 10, 64)
-			numStack.Push(int(val))
+			// 处理多位数的思路
+			// 1. 定义 一个变量 keepNum string 做拼接
+			keepNum += ch
+			// 2. 每次都向index的后面字符测试一下，看看是不是运算符，然后在处理
+
+			// 如果已经到表达式最后，直接将 keepNum
+			if index == len(exp) - 1 {
+				// 参数1 数字的字符串形式
+				// 参数2 数字字符串的进制 比如二进制 八进制 十进制 十六进制
+				// 参数3 返回结果的bit大小 也就是int8 int16 int32 int64
+				val, _ := strconv.ParseInt(keepNum, 10, 64)
+				numStack.Push(int(val))
+			} else {
+				// 向 index 后面测试看看是不是运算符
+				if operStack.IsOper(int([]byte(exp[index + 1:index + 2])[0])){
+					val, _ := strconv.ParseInt(keepNum, 10, 64)
+					numStack.Push(int(val))
+					keepNum = ""
+				}
+			}
+
 		}
 		// 继续扫描
 		// 先判断 index 是否已经扫描到计算表达式的最后
